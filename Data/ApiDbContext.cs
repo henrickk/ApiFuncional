@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ApiFuncional.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiFuncional.Data
 {
@@ -7,5 +8,7 @@ namespace ApiFuncional.Data
         public ApiDbContext(DbContextOptions<ApiDbContext> options) : base(options)
         {
         }
+
+        public DbSet<Produto> Produtos { get; set; }
     }
 }
