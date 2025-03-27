@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
 
 namespace ApiFuncional.Controllers
@@ -46,7 +45,7 @@ namespace ApiFuncional.Controllers
                 return Ok(GerarJwt());
             }
 
-            return Problem("Falha ao registrar usuário");
+            return Problem("Falha ao registrar o usuário");
         }
 
         [HttpPost("login")]
@@ -61,7 +60,7 @@ namespace ApiFuncional.Controllers
                 return Ok(GerarJwt());
             }
 
-            return Problem("Falha ao registrar usuário");
+            return Problem("Usuário ou senha incorretos");
         }
 
         private string GerarJwt()
