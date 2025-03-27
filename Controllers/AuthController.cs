@@ -2,6 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace ApiFuncional.Controllers
 {
@@ -34,13 +38,48 @@ namespace ApiFuncional.Controllers
                 EmailConfirmed = true
             };
 
-            return Ok();
+            var result = await _userManager.CreateAsync(user, registerUser.Password);
+
+            if (result.Succeeded)
+            {
+                await _signInManager.SignInAsync(user, false);
+                return Ok(GerarJwt());
+            }
+
+            return Problem("Falha ao registrar usuário");
         }
 
         [HttpPost("login")]
         public async Task<ActionResult> Login(LoginUserViewModel loginUser)
         {
-            return Ok();
+            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+
+            var result = await _signInManager.PasswordSignInAsync(loginUser.Email, loginUser.Password, false, true);
+
+            if (result.Succeeded)
+            {
+                return Ok(GerarJwt());
+            }
+
+            return Problem("Falha ao registrar usuário");
+        }
+
+        private string GerarJwt()
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_jwtSettings.Segredo);
+
+            var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
+            {
+                Issuer = _jwtSettings.Emissor,
+                Audience = _jwtSettings.Audiencia,
+                Expires = DateTime.UtcNow.AddHours(_jwtSettings.ExpiracaoHoras),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            });
+
+            var encodedToken = tokenHandler.WriteToken(token);
+
+            return encodedToken;
         }
     }
 }
