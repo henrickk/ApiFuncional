@@ -1,11 +1,12 @@
 ﻿using ApiFuncional.Data;
 using ApiFuncional.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace ApiFuncional.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/produtos")]
     public class ProdutosController : ControllerBase
@@ -31,6 +32,7 @@ namespace ApiFuncional.Controllers
             return await _context.Produtos.ToListAsync();
         }
 
+        [AllowAnonymous]
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -58,7 +60,7 @@ namespace ApiFuncional.Controllers
         [ProducesDefaultResponseType]
         public async Task<ActionResult<Produto>> PostProduto(Produto produto)
         {
-            if (produto == null)
+            if (_context.Produtos == null)
             {
                 return Problem("Erro ao criar um produto, contate o suporte!");
             }
@@ -69,11 +71,10 @@ namespace ApiFuncional.Controllers
 
                 //return ValidationProblem(ModelState);
 
-                return ValidationProblem(new ValidationProblemDetails(ModelState)
-                {
-                    Title = "Um ou mais erros de validação ocorreram!"
+                return ValidationProblem(new ValidationProblemDetails(ModelState) 
+                { 
+                    Title = "Um ou mais erros de validação ocorreram!"                    
                 });
-
             }
 
             _context.Produtos.Add(produto);
@@ -111,17 +112,17 @@ namespace ApiFuncional.Controllers
                 }
             }
 
-
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesDefaultResponseType]
         public async Task<IActionResult> DeleteProduto(int id)
         {
-            if(_context.Produtos == null)
+            if (_context.Produtos == null)
             {
                 return NotFound();
             }
